@@ -1,34 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  WiDaySunny,
-  WiCloudy,
-  WiRain,
-  WiSnow,
-  WiThunderstorm,
-  WiFog,
-  WiDayHaze,
-  WiStrongWind,
-  WiHumidity,
-  WiBarometer,
-} from 'react-icons/wi';
-import { FiSearch, FiX } from 'react-icons/fi';
-import { useTheme } from '../context/ThemeContext';
 import { getCurrentWeather, getWeatherByCoords } from '../services/weatherApi';
 
-const getWeatherIcon = (weatherMain) => {
+const getWeatherEmoji = (weatherMain) => {
   const iconMap = {
-    Clear: WiDaySunny,
-    Clouds: WiCloudy,
-    Rain: WiRain,
-    Drizzle: WiRain,
-    Thunderstorm: WiThunderstorm,
-    Snow: WiSnow,
-    Mist: WiFog,
-    Fog: WiFog,
-    Haze: WiDayHaze,
+    Clear: '☀️',
+    Clouds: '☁️',
+    Rain: '🌧️',
+    Drizzle: '🌦️',
+    Thunderstorm: '⛈️',
+    Snow: '❄️',
+    Mist: '🌫️',
+    Fog: '🌫️',
+    Haze: '🌫️',
   };
-  return iconMap[weatherMain] || WiDaySunny;
+  return iconMap[weatherMain] || '☀️';
+};
+
+const StatCard = ({ icon, label, value, unit }) => {
+  return (
+    <div className="stat-badge group">
+      <span className="text-2xl group-hover:scale-110 transition-transform">{icon}</span>
+      <div className="text-center">
+        <p className="text-xs text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide">
+          {label}
+        </p>
+        <p className="text-lg font-light text-gray-900 dark:text-gray-100 mt-1">
+          {value}<span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{unit}</span>
+        </p>
+      </div>
+    </div>
+  );
 };
 
 const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
@@ -38,7 +40,6 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
   const [useCoords, setUseCoords] = useState(false);
   const [showSearch, setShowSearch] = useState(showSearchProp || false);
 
-  // Sync with prop changes
   useEffect(() => {
     if (showSearchProp !== undefined) {
       setShowSearch(showSearchProp);
@@ -81,10 +82,10 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
 
   if (isLoading) {
     return (
-      <section className="min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <section className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-[#202124]">
         <div className="text-center">
-          <div className="h-12 w-12 rounded-full border-2 border-blue-500 dark:border-blue-400 border-t-transparent animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Loading weather data...</p>
+          <div className="h-12 w-12 rounded-full border-3 border-[#1a73e8] border-t-transparent animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-light">Loading weather data...</p>
         </div>
       </section>
     );
@@ -92,14 +93,14 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
 
   if (isError) {
     return (
-      <section className="min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-50 to-white dark:from-gray-900 dark:to-gray-800 px-4">
+      <section className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-[#202124] px-4">
         <div className="text-center max-w-md">
-          <p className="text-gray-700 dark:text-gray-300 mb-4">{error?.message || 'Failed to load weather'}</p>
+          <p className="text-gray-700 dark:text-gray-300 mb-6 font-light">{error?.message || 'Failed to load weather'}</p>
           <button
             onClick={refetch}
-            className="px-6 py-2 rounded-full bg-blue-500 dark:bg-blue-600 text-white shadow hover:shadow-lg transition"
+            className="px-6 py-3 rounded-full bg-[#1a73e8] text-white text-sm font-medium hover:bg-[#1557b0] transition-colors"
           >
-            Retry
+            Try Again
           </button>
         </div>
       </section>
@@ -108,47 +109,31 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
 
   if (!data) return null;
 
-  const WeatherIcon = getWeatherIcon(data.weather[0]?.main);
+  const weatherEmoji = getWeatherEmoji(data.weather[0]?.main);
   const temperature = Math.round(data.main.temp);
   const feelsLike = Math.round(data.main.feels_like);
   const currentTime = new Date();
+  const sunrise = data.sys?.sunrise ? new Date(data.sys.sunrise * 1000) : null;
+  const sunset = data.sys?.sunset ? new Date(data.sys.sunset * 1000) : null;
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-sky-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl sm:text-4xl font-normal text-gray-900 dark:text-white tracking-tight">
-              {data.name}, {data.sys?.country}
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </p>
-          </div>
-        </div>
-
-        {/* Search Bar */}
+    <section className="min-h-screen bg-[#f8f9fa] dark:bg-[#202124] transition-colors duration-300 pb-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {showSearch && (
-          <div className="mb-8">
-            <form onSubmit={handleSearch} className="flex gap-3">
+          <div className="mb-8 slide-up">
+            <form onSubmit={handleSearch} className="flex gap-2">
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Search for a city..."
                 autoFocus
-                className="flex-1 px-5 py-3 rounded-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition"
+                className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-[#303134] border border-gray-300 dark:border-[#5f6368] text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-[#1a73e8] dark:focus:border-[#8ab4f8] text-sm"
               />
               <button
                 type="submit"
-                className="px-6 py-3 rounded-full bg-blue-500 dark:bg-blue-600 text-white shadow hover:shadow-lg transition flex items-center gap-2"
+                className="px-6 py-3 rounded-xl bg-[#1a73e8] text-white text-sm font-medium hover:bg-[#1557b0] transition-colors"
               >
-                <FiSearch />
                 Search
               </button>
               <button
@@ -157,133 +142,179 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
                   setShowSearch(false);
                   if (onSearchClose) onSearchClose();
                 }}
-                className="px-4 py-3 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                className="px-4 py-3 rounded-xl bg-white dark:bg-[#303134] border border-gray-300 dark:border-[#5f6368] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#3c4043] transition-colors text-sm"
               >
-                <FiX />
+                Cancel
               </button>
             </form>
           </div>
         )}
 
-        {/* Main Weather Card */}
-        <div className="relative bg-white/70 dark:bg-gray-800/70 backdrop-blur-2xl rounded-[32px] shadow-xl dark:shadow-2xl p-8 sm:p-10 mb-8 overflow-hidden border border-gray-200/50 dark:border-gray-700/50">
-          {/* Ambient Glow */}
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-sky-300/30 dark:bg-blue-500/20 rounded-full blur-3xl"></div>
+        <div className="fade-in">
+          <div className="mb-2">
+            <h2 className="text-3xl font-light text-gray-900 dark:text-gray-100">
+              {data.name}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 font-light mt-1">
+              {currentTime.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+              })} at {currentTime.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+              })}
+            </p>
+          </div>
 
-          <div className="relative flex flex-col md:flex-row items-center justify-between gap-8">
-            {/* Left: Icon and Temperature */}
-            <div className="flex items-center gap-6">
-              <WeatherIcon className="text-[100px] sm:text-[120px] text-blue-500 dark:text-blue-400 drop-shadow-sm" />
-              <div>
-                <div className="text-[80px] sm:text-[100px] font-extralight leading-none text-gray-900 dark:text-white">
-                  {temperature}°
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+            {/* Main Weather Card */}
+            <div className="lg:col-span-2 weather-card p-8 sm:p-10 slide-up">
+              <div className="flex items-start justify-between mb-8">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide mb-3">
+                    Current Weather
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-8xl font-light text-gray-900 dark:text-gray-100">
+                      {temperature}
+                    </span>
+                    <span className="text-3xl text-gray-500 dark:text-gray-400">°C</span>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 capitalize mt-3 font-light text-lg">
+                    {data.weather[0]?.description}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-light">
+                    Feels like {feelsLike}°C
+                  </p>
                 </div>
-                <p className="capitalize text-lg text-gray-600 dark:text-gray-300 tracking-wide">
-                  {data.weather[0]?.description}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Feels like {feelsLike}°
-                </p>
+                <div className="text-9xl animate-bounce" style={{ animationDuration: '2.5s' }}>
+                  {weatherEmoji}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-8 border-t border-gray-200 dark:border-[#3c4043]">
+                <div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide mb-2">
+                    High
+                  </p>
+                  <p className="text-3xl font-light text-gray-900 dark:text-gray-100">
+                    {Math.round(data.main.temp_max)}°
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide mb-2">
+                    Low
+                  </p>
+                  <p className="text-3xl font-light text-gray-900 dark:text-gray-100">
+                    {Math.round(data.main.temp_min)}°
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Right: Time */}
-            <div className="text-right">
-              <p className="text-2xl font-light text-gray-800 dark:text-gray-200">
-                {currentTime.toLocaleTimeString('en-US', {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: true,
-                })}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {currentTime.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
+            {/* Right Sidebar */}
+            <div className="lg:col-span-1 flex flex-col gap-6 slide-up" style={{ animationDelay: '0.1s' }}>
+              {/* Humidity Card */}
+              <div className="weather-card p-6">
+                <p className="text-xs text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide mb-3">
+                  Humidity
+                </p>
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl">💧</span>
+                  <div>
+                    <p className="text-3xl font-light text-gray-900 dark:text-gray-100">
+                      {data.main.humidity}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Wind Card */}
+              <div className="weather-card p-6">
+                <p className="text-xs text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide mb-3">
+                  Wind Speed
+                </p>
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl">💨</span>
+                  <div>
+                    <p className="text-3xl font-light text-gray-900 dark:text-gray-100">
+                      {(data.wind?.speed || 0).toFixed(1)}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">m/s</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visibility Card */}
+              <div className="weather-card p-6">
+                <p className="text-xs text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide mb-3">
+                  Visibility
+                </p>
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl">👁️</span>
+                  <div>
+                    <p className="text-3xl font-light text-gray-900 dark:text-gray-100">
+                      {((data.visibility || 0) / 1000).toFixed(1)}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">km</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Weather Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 mb-8">
-          {[
-            {
-              icon: WiHumidity,
-              label: 'Humidity',
-              value: `${data.main.humidity}%`,
-            },
-            {
-              icon: WiStrongWind,
-              label: 'Wind',
-              value: `${(data.wind?.speed || 0).toFixed(1)} m/s`,
-            },
-            {
-              icon: WiBarometer,
-              label: 'Pressure',
-              value: `${data.main.pressure} hPa`,
-            },
-            {
-              icon: null,
-              label: 'Visibility',
-              value: `${((data.visibility || 0) / 1000).toFixed(1)} km`,
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-2xl p-5 shadow-md dark:shadow-lg hover:shadow-lg dark:hover:shadow-xl transition border border-gray-200/50 dark:border-gray-700/50"
-            >
-              <div className="flex items-center gap-3 text-gray-400 dark:text-gray-500 mb-2">
-                {item.icon && (
-                  <item.icon className="text-2xl text-gray-500 dark:text-gray-400" />
-                )}
-                <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                  {item.label}
-                </span>
-              </div>
-              <div className="text-2xl sm:text-3xl font-extralight text-gray-800 dark:text-white">
-                {item.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Temperature Range Card */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-2xl p-6 shadow-md dark:shadow-lg border border-gray-200/50 dark:border-gray-700/50">
-          <p className="text-xs uppercase text-gray-500 dark:text-gray-400 mb-4 tracking-wide">
-            Temperature Range
-          </p>
-
-          <div className="flex items-center gap-6">
-            <div className="text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">High</p>
-              <p className="text-3xl font-light text-gray-800 dark:text-white">
-                {Math.round(data.main.temp_max)}°
-              </p>
-            </div>
-
-            <div className="flex-1 h-2.5 bg-gray-200/70 dark:bg-gray-700/70 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 dark:from-blue-500 dark:via-blue-600 dark:to-indigo-600"
-                style={{
-                  width: `${
-                    ((data.main.temp - data.main.temp_min) /
-                      (data.main.temp_max - data.main.temp_min)) *
-                    100
-                  }%`,
-                }}
-              />
-            </div>
-
-            <div className="text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Low</p>
-              <p className="text-3xl font-light text-gray-800 dark:text-white">
-                {Math.round(data.main.temp_min)}°
-              </p>
-            </div>
+          {/* Additional Details Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-8">
+            <StatCard icon="🌡️" label="Pressure" value={data.main.pressure} unit="hPa" />
+            <StatCard icon="💨" label="Feels Like" value={feelsLike} unit="°C" />
+            <StatCard icon="☁️" label="Cloud Coverage" value={data.clouds?.all || 0} unit="%" />
+            <StatCard icon="💧" label="Dew Point" value={Math.round(data.main.temp - (9/5 * (100 - data.main.humidity) / 100))} unit="°C" />
+            {data.rain && <StatCard icon="🌧️" label="Rain (1h)" value={(data.rain['1h'] || 0).toFixed(1)} unit="mm" />}
+            {data.uvi && <StatCard icon="☀️" label="UV Index" value={Math.round(data.uvi)} unit="" />}
           </div>
+
+          {/* Sunrise/Sunset Section */}
+          {sunrise && sunset && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 slide-up" style={{ animationDelay: '0.2s' }}>
+              <div className="weather-card p-6">
+                <div className="flex items-center gap-4">
+                  <span className="text-5xl">🌅</span>
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide mb-2">
+                      Sunrise
+                    </p>
+                    <p className="text-3xl font-light text-gray-900 dark:text-gray-100">
+                      {sunrise.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="weather-card p-6">
+                <div className="flex items-center gap-4">
+                  <span className="text-5xl">🌇</span>
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-light uppercase tracking-wide mb-2">
+                      Sunset
+                    </p>
+                    <p className="text-3xl font-light text-gray-900 dark:text-gray-100">
+                      {sunset.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
