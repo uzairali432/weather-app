@@ -9,7 +9,7 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#202124] transition-colors duration-300">
         <Header onSearchClick={() => setShowSearch(!showSearch)} />
         <Hero showSearch={showSearch} onSearchClose={() => setShowSearch(false)} />
       </div>
