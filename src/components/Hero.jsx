@@ -38,8 +38,9 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
   const [searchCity, setSearchCity] = useState('London');
   const [coords, setCoords] = useState(null);
   const [useCoords, setUseCoords] = useState(false);
+  const [internalShowSearch, setInternalShowSearch] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const showSearch = showSearchProp ?? false;
+  const showSearch = showSearchProp ?? internalShowSearch;
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -74,8 +75,10 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
     }
 
     setSearchError('');
+    setCity(trimmedCity);
     setSearchCity(trimmedCity);
     setUseCoords(false);
+    setInternalShowSearch(false);
     if (onSearchClose) onSearchClose();
   };
 
@@ -143,6 +146,8 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
                 type="button"
                 onClick={() => {
                   setSearchError('');
+                  setCity(searchCity);
+                  setInternalShowSearch(false);
                   if (onSearchClose) onSearchClose();
                 }}
                 className="px-4 py-3 rounded-xl bg-white dark:bg-[#303134] border border-gray-300 dark:border-[#5f6368] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#3c4043] transition-colors text-sm"
