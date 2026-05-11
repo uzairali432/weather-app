@@ -38,13 +38,8 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
   const [searchCity, setSearchCity] = useState('London');
   const [coords, setCoords] = useState(null);
   const [useCoords, setUseCoords] = useState(false);
-  const [showSearch, setShowSearch] = useState(showSearchProp || false);
-
-  useEffect(() => {
-    if (showSearchProp !== undefined) {
-      setShowSearch(showSearchProp);
-    }
-  }, [showSearchProp]);
+  const [searchError, setSearchError] = useState('');
+  const showSearch = showSearchProp ?? false;
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -72,12 +67,16 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (city.trim()) {
-      setSearchCity(city.trim());
-      setUseCoords(false);
-      setShowSearch(false);
-      if (onSearchClose) onSearchClose();
+    const trimmedCity = city.trim();
+    if (!trimmedCity) {
+      setSearchError('Please enter a city name.');
+      return;
     }
+
+    setSearchError('');
+    setSearchCity(trimmedCity);
+    setUseCoords(false);
+    if (onSearchClose) onSearchClose();
   };
 
   if (isLoading) {
@@ -121,14 +120,18 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {showSearch && (
           <div className="mb-8 slide-up">
-            <form onSubmit={handleSearch} className="flex gap-2">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => {
+                  setCity(e.target.value);
+                  if (searchError) setSearchError('');
+                }}
                 placeholder="Search for a city..."
+                aria-label="Search for a city"
                 autoFocus
-                className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-[#303134] border border-gray-300 dark:border-[#5f6368] text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-[#1a73e8] dark:focus:border-[#8ab4f8] text-sm"
+                className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-[#303134] border border-gray-300 dark:border-[#5f6368] text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-[#1a73e8] dark:focus:border-[#8ab4f8] focus-visible:ring-2 focus-visible:ring-[#1a73e8] text-sm"
               />
               <button
                 type="submit"
@@ -139,7 +142,7 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
               <button
                 type="button"
                 onClick={() => {
-                  setShowSearch(false);
+                  setSearchError('');
                   if (onSearchClose) onSearchClose();
                 }}
                 className="px-4 py-3 rounded-xl bg-white dark:bg-[#303134] border border-gray-300 dark:border-[#5f6368] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#3c4043] transition-colors text-sm"
@@ -147,6 +150,9 @@ const Hero = ({ showSearch: showSearchProp, onSearchClose }) => {
                 Cancel
               </button>
             </form>
+            {searchError && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{searchError}</p>
+            )}
           </div>
         )}
 
