@@ -41,5 +41,5 @@ A modern, responsive weather application built with React, Vite, and Tailwind CS
 - Vite
 - Tailwind CSS
 - React Query (@tanstack/react-query)
-- Axiosn
+- Axios
 - React Icons
